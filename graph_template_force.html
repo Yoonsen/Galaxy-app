@@ -269,7 +269,7 @@ node.on("mouseout touchend", function(d) {
          .enter().append("path")
          .attr("fill", "none")
          .attr("stroke", "#555")
-         .attr("stroke-width", 1)
+         .attr("stroke-width", 0.5)
          .attr("stroke-opacity", 0.4);
          
         simulation
@@ -322,7 +322,7 @@ function highlightCluster(clusterId, enlarge, nodeColor) {
         })
         .attr("stroke-width", function(l) {
             return (l.source.community === clusterId || l.target.community === clusterId) ?
-                3 : 1; // Standard width for non-selected links
+                3 : 0.5; // Standard width for non-selected links
         });
 }
 

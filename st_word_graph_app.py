@@ -141,7 +141,7 @@ with p_col2:
         corpus = 'all'
 
 with p_col3:
-    cutoff = st.number_input('Tilfang av noder', min_value = 10, max_value =24, value = 12, help="Angi et tall mellom 12 og 24 - jo større, jo fler noder")
+    cutoff = st.number_input('Tilfang av noder', min_value = 5, max_value =24, value = 18, help="Angi et tall mellom 8 og 24 - jo større, jo fler noder")
 
 
 data_col1, data_col2, data_col3, data_col4 = st.tabs(["Graf", "Clustre", "Klikkstruktur", "Sti mellom noder"])
@@ -192,10 +192,10 @@ with data_col4:
         to_word = ws[1]
     else:
         try:
-            #cent = pd.DataFrame.from_dict(nx.degree_centrality(Graph), orient='index', columns =['centrality']).sort_values(by='centrality', ascending=False)
-            #from_word = cent.iloc[0].name
-            #to_word = cent.iloc[1].name
-            st.write(ws)
+            cent = pd.DataFrame.from_dict(nx.degree_centrality(Graph), orient='index', columns =['centrality']).sort_values(by='centrality', ascending=False)
+            from_word = cent.iloc[0].name
+            to_word = cent.iloc[1].name
+            #st.write(ws)
         except:
             pass
 
