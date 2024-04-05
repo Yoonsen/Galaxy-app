@@ -1,0 +1,12 @@
+dhlab>2.0
+streamlit >= 1.5.1
+matplotlib
+numpy
+requests
+IPython
+seaborn
+scipy
+networkx
+python-louvain
+community
+Pillow

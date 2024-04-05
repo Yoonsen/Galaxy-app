@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+      <meta charset="UTF-8">
+      <title>D3 Force Layout</title>
+      <style>
+         text {
+         font-family: sans-serif;
+         }
+      .node text {
+            cursor: pointer; /* or 'move', depending on your preference */
+        }
+          
+    .graph-container {
+        width: 100%; /* Adjust the width as necessary, or make it responsive */
+        max-width: 100%;
+        height: auto; /* Adjust height based on the aspect ratio or set to a fixed value */
+        overflow: auto; /* Allows scrolling if the graph is larger than the container */
+    }
+    svg {
+        width: 100%;
+        height: auto;
+    }
+     svg text {
+    user-select: none;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+}
+
+.graph-button {
+    background-color: rgba(128, 128, 128, 0.8); /* Grey color with some transparency */
+    border: 2px solid gray;
+    color: white; /* White text for better contrast */
+    width: 145px;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: block;
+    font-size: 20px;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 8px;
+    transition-duration: 0.4s;
+}
+          
+.no-select-button {
+    user-select: none;
+    -webkit-user-select: none; /* Safari */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* Internet Explorer/Edge */
+}
+          
+.message-style {
+  position: absolute;
+  top: 100px; /* Adjust as needed */
+  left: 20px; /* Adjust as needed */
+  background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent white */
+  padding: 10px;
+  border-radius: 5px;
+  display: none; /* Initially hidden */
+}
+
+.container {
+    display: flex;
+}
+
+.vertical-buttons {
+    display: flex;
+    flex-direction: column;
+    margin-right: 10px;
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 10;
+    background-color: rgba(255, 255, 255, 0.5); /* Semi-transparent white background for the container */
+}
+
+.svg-container {
+    position: relative;
+    width: 1920px;
+    height: 1080px;
+}
+
+/* ... rest of your CSS ... */
+
+
+
+          
+.graph-button:hover {
+    background-color: rgba(169, 169, 169, 0.9); /* Darker shade of grey */
+    color: white;
+}
+
+          
+</style>
+   </head>
+   <body>    
+        <div class="graph-container">
+            <svg width=1000 height=1000></svg>
+        </div>
+</div>
+
+        </div>
+       
+      <script src="https://d3js.org/d3.v5.min.js"></script>
+        <script>
+            function loadNetwork(graph) {
+            d3.select("svg").selectAll("*").remove();
+            
+            var svg = d3.select("svg"),
+             width = +svg.attr("width"),
+             height = +svg.attr("height");
+             // Disable touch-based zoom and pan
+            svg.on("contextmenu", function() {
+      // Prevent the context menu from appearing
+                ;
+      d3.event.preventDefault();
+      });
+                
+   
+                var nodes = graph.nodes;
+                var links = graph.links;
+          
+         var colors = [
+                    "#1f77b4", "#aec7e8", 
+                    "#ff7f0e", "#ffbb78", 
+                    "#2ca02c", "#98df8a", 
+                    "#d62728", "#ff9896", 
+                    "#9467bd", "#c5b0d5",
+                    "#8c564b", "#c49c94", 
+                    "#e377c2", "#f7b6d2", 
+                    "#7f7f7f", "#c7c7c7", 
+                    "#bcbd22", "#dbdb8d", 
+                    "#17becf", "#9edae5"
+                ];
+                
+                var mcolors = [
+    "#5A5A5A", // Gunmetal Gray
+    "#A97142", // Bronze
+    "#A8A9AD", // Silver
+    "#D4AF37", // Gold
+    "#C0C0C0", // Silver Sand
+    "#716F81", // Metallic Violet
+    "#8D8741", // Brass
+    "#B5B7B9", // Steel
+    "#6A6E6D", // Metallic Green
+    "#857C75", // Copper
+    "#9E9E9E", // Metallic Grey
+    "#7F7C7D", // Iron
+    "#5D5D5D", // Dark Grey
+    "#867474", // Rust
+    "#8B8C7A", // Pewter
+    "#6D7B8D", // Metallic Blue
+    "#728FCE", // Light Steel Blue
+    "#646D7E", // Jet Grey
+    "#566D7E", // Slate Grey
+    "#737CA1"  // Light Slate Grey
+  ];
+            var colorScale = d3.scaleOrdinal()
+                .domain(d3.range(0, colors.length)) // Assuming cluster numbers are 0-indexed
+                .range(colors);
+                
+         // Centrality - computed from NetworkX - where the graph is coming from
+         
+         var centralityScale = d3.scaleLinear()
+         .domain([d3.min(nodes, d => d.centrality), d3.max(nodes, d => d.centrality)])
+         .range([10, 35]);  // Min and max circle radii
+         
+        var fontSizeScale = d3.scaleLinear()
+        .domain([d3.min(nodes, d => d.centrality), d3.max(nodes, d => d.centrality)])
+        .range([16, 24]);  // Min and max font sizes, adjust as needed
+
+        var opacityScale = d3.scaleLinear()
+        .domain([d3.max(nodes, d => d.centrality), d3.min(nodes, d => d.centrality)])
+        .range([0.4, 0.7]);  // Min and max font sizes, adjust as needed
+
+                
+
+
+
+                
+                
+var forceX = d3.forceX(width / 2).strength(0.1);
+var forceY = d3.forceY(height / 2).strength(0.1);
+
+var simulation = d3.forceSimulation(nodes)
+    .force("link", d3.forceLink(links).id(d => d.id))
+    .force("charge", d3.forceManyBody().strength(-210))
+    .force("x", forceX)
+    .force("y", forceY);
+         
+        var target = { x: width / 2, y: height / 2 }; // Start at the center or off-screen
+
+        // Define the attraction force
+        //var attractForceX = d3.forceX(function(d) { return target.x; }).strength(0);
+        //var attractForceY = d3.forceY(function(d) { return target.y; }).strength(0);
+
+    
+                
+         // Add links
+         var link = svg.append("g")
+         .attr("class", "links")
+         .selectAll("line")
+         .data(links)
+         .enter().append("line")
+         .attr("stroke", "#999")
+         .attr("stroke-opacity", 0.2);
+         
+         // Add nodes
+         // Create groups for nodes and labels
+         var node = svg.append("g")
+         .attr("class", "nodes")
+         .selectAll(".node")
+         .data(nodes)
+         .enter().append("g")
+         .attr("class", "node")
+         .call(d3.drag()
+         .on("start", dragstarted)
+         .on("drag", dragged)
+         .on("end", dragended));
+         
+        
+         // When appending circles:
+         node.append("circle")
+         .attr("r", d => centralityScale(d.centrality))
+         .attr("fill", d => colorScale(d.community))
+         .attr("fill-opacity", d => opacityScale(d.centrality));
+         
+         
+         // Append labels to the groups
+        node.append("text")
+        .attr("class", "node")
+        .attr("dx", 12)
+        .attr("dy", ".35em")
+        .style("font-size", d => fontSizeScale(d.centrality) + "px")
+        .text(function(d) {
+            return d.id;
+        });
+
+node.on("mouseover touchstart", function(d) {
+    var nodeColor = colorScale(d.community); // Retrieve the color of the hovered node
+    highlightCluster(d.community, true, nodeColor);
+})
+
+node.on("mouseout touchend", function(d) {
+    // Reset nodes to their default state
+    node.selectAll("circle")
+        .transition()
+        .duration(150)
+        .attr("r", d => centralityScale(d.centrality)) // Reset size
+        .attr("fill-opacity", 1); // Reset opacity to fully opaque
+
+    // Reset links to their default state
+    link.transition()
+        .duration(150)
+        .attr("stroke", "#555") // Default link color
+        .attr("stroke-opacity", 0.4) // Reset opacity
+        .attr("stroke-width", 1); // Reset stroke width
+});
+
+
+
+                
+         var link = svg.append("g")
+         .attr("class", "links")
+         .selectAll("path")
+         .data(links)
+         .enter().append("path")
+         .attr("fill", "none")
+         .attr("stroke", "#555")
+         .attr("stroke-width", 1)
+         .attr("stroke-opacity", 0.4);
+         
+        simulation
+         .nodes(nodes)
+         .on("tick", ticked);
+         
+         simulation.force("link")
+         .links(links);
+
+
+                
+  svg.on("mousedown touchstart", function() {
+    var point = d3.mouse(this);
+    forceX.x(point[0]).strength(0.2); // Stronger pull towards the mouse x position
+    forceY.y(point[1]).strength(0.2); // Stronger pull towards the mouse y position
+    simulation.alphaTarget(0.3).restart();
+});
+
+svg.on("mouseup touchend", function() {
+    forceX.x(width / 2).strength(0.1); // Reset to original strength and position
+    forceY.y(height / 2).strength(0.1);
+    simulation.alphaTarget(0).restart();
+});       
+
+                
+function highlightCluster(clusterId, enlarge, nodeColor) {
+    // Highlight selected cluster nodes
+    node.selectAll("circle")
+        .transition()
+        .duration(150)
+        .attr("r", function(d) { 
+            return d.community === clusterId ?
+                (enlarge ? centralityScale(d.centrality) * 1.5 : centralityScale(d.centrality)) :
+                centralityScale(d.centrality); // Keep original size for other nodes
+        })
+        .attr("fill-opacity", function(d) {
+            return d.community === clusterId ? opacityScale(d.centrality) : 0.2; // Reduce opacity for non-selected nodes
+        });
+
+    // Highlight selected cluster links and subdue others
+    link.transition()
+        .duration(150)
+        .attr("stroke", function(l) {
+            return (l.source.community === clusterId || l.target.community === clusterId) ?
+                nodeColor : "#555"; // Default color for non-selected links
+        })
+        .attr("stroke-opacity", function(l) {
+            return (l.source.community === clusterId || l.target.community === clusterId) ?
+                0.6 : 0.1; // Reduced opacity for non-selected links
+        })
+        .attr("stroke-width", function(l) {
+            return (l.source.community === clusterId || l.target.community === clusterId) ?
+                3 : 1; // Standard width for non-selected links
+        });
+}
+
+
+var dragHandler = d3.drag()
+    .on("start", dragstarted)
+    .on("drag", dragged)
+    .on("end", dragended);
+
+node.call(dragHandler);
+                
+         function ticked() {
+             node.attr("transform", d => `translate(${d.x},${d.y})`);
+             
+        
+            link.attr("d", function(d) {
+            var dx = d.target.x - d.source.x,
+            dy = d.target.y - d.source.y,
+            dr = Math.sqrt(dx * dx + dy * dy),
+            rSource = centralityScale(d.source.centrality), // Radius of source node
+            rTarget = centralityScale(d.target.centrality), // Radius of target node
+            offsetXSource = (dx * rSource) / dr,
+            offsetYSource = (dy * rSource) / dr,
+            offsetXTarget = (dx * rTarget) / dr,
+            offsetYTarget = (dy * rTarget) / dr
+                    // Control the amount of arching
+        var arcScale = 0.8; // Adjust this value to increase or decrease arching
+        var arcRadius = dr / arcScale;
+
+        var arcPath = `M ${d.source.x + offsetXSource} ${d.source.y + offsetYSource}
+                       A ${arcRadius} ${arcRadius} 0 0 1 
+                       ${d.target.x - offsetXTarget} ${d.target.y - offsetYTarget}`;
+        //console.log(d.target)
+        return arcPath;
+             });
+         }
+         
+         function dragstarted(d) {
+         if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+         d.fx = d.x;
+         d.fy = d.y;
+         }
+         
+         function dragged(d) {
+         d.fx = d3.event.x;
+         d.fy = d3.event.y;
+         }
+         
+         function dragended(d) {
+         if (!d3.event.active) simulation.alphaTarget(0);
+         d.fx = null;
+         d.fy = null;
+         }
+         };
+       </script>
+      <script>
+          var graph_data = {
+            "nodes": NODES_FROM_DATA,
+            "links": LINKS_FROM_DATA
+            }
+          loadNetwork(graph_data)
+      </script>
+   </body>
+</html>
