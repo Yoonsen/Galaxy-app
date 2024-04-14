@@ -255,8 +255,8 @@ node.on("mouseout touchend", function(d) {
     link.transition()
         .duration(150)
         .attr("stroke", "#555") // Default link color
-        .attr("stroke-opacity", 0.4) // Reset opacity
-        .attr("stroke-width", 1); // Reset stroke width
+        .attr("stroke-opacity", 0.2) // Reset opacity
+        .attr("stroke-width", 0.5); // Reset stroke width
 });
 
 
@@ -270,7 +270,7 @@ node.on("mouseout touchend", function(d) {
          .attr("fill", "none")
          .attr("stroke", "#555")
          .attr("stroke-width", 0.5)
-         .attr("stroke-opacity", 0.4);
+         .attr("stroke-opacity", 0.2);
          
         simulation
          .nodes(nodes)
