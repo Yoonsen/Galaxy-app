@@ -169,11 +169,11 @@
          
         var fontSizeScale = d3.scaleLinear()
         .domain([d3.min(nodes, d => d.centrality), d3.max(nodes, d => d.centrality)])
-        .range([16, 24]);  // Min and max font sizes, adjust as needed
+        .range([16, 52]);  // Min and max font sizes, adjust as needed
 
         var opacityScale = d3.scaleLinear()
         .domain([d3.max(nodes, d => d.centrality), d3.min(nodes, d => d.centrality)])
-        .range([0.4, 0.7]);  // Min and max font sizes, adjust as needed
+        .range([0.1, 0.4]);  // Min and max font sizes, adjust as needed
 
                 
 
@@ -249,7 +249,7 @@ node.on("mouseout touchend", function(d) {
         .transition()
         .duration(150)
         .attr("r", d => centralityScale(d.centrality)) // Reset size
-        .attr("fill-opacity", 1); // Reset opacity to fully opaque
+        .attr("fill-opacity", 0.5); // Reset opacity to fully opaque
 
     // Reset links to their default state
     link.transition()
@@ -318,7 +318,7 @@ function highlightCluster(clusterId, enlarge, nodeColor) {
         })
         .attr("stroke-opacity", function(l) {
             return (l.source.community === clusterId || l.target.community === clusterId) ?
-                0.6 : 0.1; // Reduced opacity for non-selected links
+                0.4 : 0.1; // Reduced opacity for non-selected links
         })
         .attr("stroke-width", function(l) {
             return (l.source.community === clusterId || l.target.community === clusterId) ?
